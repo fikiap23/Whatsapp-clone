@@ -1,0 +1,39 @@
+@startuml
+left to right direction
+actor User as U
+
+
+rectangle Use_Case_User_WhatsApp {
+  U -- (Daftar) 
+  U -- (Buat Grup)
+  U -- (Chat)
+  U -- (Profile Setting)
+  U -- (Kelola Akun)
+
+
+
+ (Daftar) --> (Buat Profil)
+  (Daftar) --> (Verifikasi OTP Nomor Telepon)
+  (Daftar) --> (Masukkan Nomor Telepon)
+
+  (Chat) --> (Kirim Lokasi)
+  (Chat) --> (Kirim Emoji/Stiker)
+  (Chat) --> (Kirim Img/Video/Audio)
+  (Chat) --> (Kirim Teks)
+  
+  (Profile Setting) --> (Edit Foto Profile)
+  (Profile Setting) --> (Edit Info Status)
+  
+  (Kelola Akun) --> (Hapus Akun)
+  (Kelola Akun) --> (Ubah Nomer)
+  (Kelola Akun) --> (Privasi Setting)
+  (Kelola Akun) --> (Customer Support)
+
+(Customer Support) --> (Pusat Bantuan)
+(Customer Support) --> (Hubungi CS)
+(Customer Support) --> (Ketentuan dan kebijakan privasi)
+
+
+}
+
+@enduml
