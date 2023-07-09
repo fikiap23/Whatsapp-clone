@@ -2,6 +2,12 @@
 
 ## Jawaban UAS
 
+Sourcode:
+
+- [Frontend-Mobile](https://gitlab.com/fikiaprian23/fronted-chatbro)
+- [Backend](https://gitlab.com/fikiaprian23/backend-ta-oop)
+- [Web Admin/Perusahaan](https://gitlab.com/fikiaprian23/webperusahaan-ta-oop)
+
 # No 1
 
 Mampu menunjukkan keseluruhan Use Case beserta ranking dari tiap Use Case dari produk digital:
@@ -73,35 +79,922 @@ Mampu menunjukkan keseluruhan Use Case beserta ranking dari tiap Use Case dari p
 
 Mampu mendemonstrasikan Class Diagram dari keseluruhan Use Case produk digital
 
+Jawab:
+<img src="Screenshot_Aplikasi/class_diagram.png" alt="alt text" width="600">
+
 # No 3
 
 Mampu menunjukkan dan menjelaskan penerapan setiap poin dari SOLID Design Principle
+
+Jawab:
+
+Penjelasan yang sederhana dan mudah dipahami untuk setiap poin dalam SOLID Design Principle:
+
+1. **Single Responsibility Principle (SRP)**: Satu kelas seharusnya hanya memiliki satu tanggung jawab utama. Artinya, kelas tersebut harus fokus dan bertanggung jawab dalam melakukan satu hal secara konkret. Hal ini membantu menjaga kelas tetap sederhana dan mudah dipahami.
+
+2. **Open-Closed Principle (OCP)**: Sebuah entitas (kelas, modul, atau fungsi) harus terbuka untuk perluasan namun tertutup untuk modifikasi. Ini berarti kita harus dapat menambahkan fitur baru atau mengubah perilaku entitas tanpa harus memodifikasi kode yang sudah ada. Hal ini memudahkan pengembangan dan perawatan kode dalam jangka panjang.
+
+3. **Liskov Substitution Principle (LSP)**: Objek dari kelas turunan harus dapat digunakan sebagai pengganti objek kelas induk tanpa mengubah kebenaran program. Dengan kata lain, jika sebuah kelas A adalah subkelas dari kelas B, maka objek dari kelas A harus dapat digunakan di mana pun objek kelas B digunakan. Prinsip ini memastikan bahwa subkelas tidak memperkenalkan efek samping atau perubahan perilaku yang tidak diharapkan.
+
+4. **Interface Segregation Principle (ISP)**: Klien tidak boleh dipaksa bergantung pada antarmuka yang tidak mereka gunakan. Prinsip ini menyatakan bahwa antarmuka harus dibagi menjadi bagian-bagian yang lebih kecil dan spesifik agar klien hanya bergantung pada apa yang mereka butuhkan. Dengan cara ini, perubahan pada satu bagian antarmuka tidak mempengaruhi klien yang tidak membutuhkan bagian tersebut.
+
+5. **Dependency Inversion Principle (DIP)**: Modul tingkat tinggi tidak boleh bergantung pada modul tingkat rendah. Keduanya seharusnya bergantung pada abstraksi. Prinsip ini menyatakan bahwa ketergantungan antara kelas harus tergantung pada abstraksi (interface atau kelas abstrak), bukan pada implementasi konkrit. Hal ini memudahkan penggantian implementasi tanpa mempengaruhi kelas yang bergantung padanya.
+
+Semua prinsip SOLID ini bertujuan untuk membuat kode lebih mudah dipahami, dioptimalkan, diperluas, dan dikelola dengan baik. Dengan menerapkan prinsip-prinsip ini, kita dapat menciptakan kode yang lebih fleksibel, modular, dan mudah diubah tanpa mengorbankan kualitas dan keberlanjutan kode.
+
+- Contoh penerapan SOLID Design Principle dalam class MessageService
+
+```java
+package com.fikiap.chatbrobackendapi.service;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+
+import com.fikiap.chatbrobackendapi.config.DatabaseConnection;
+import com.fikiap.chatbrobackendapi.entity.Message;
+import com.google.api.core.ApiFuture;
+import com.google.cloud.firestore.CollectionReference;
+import com.google.cloud.firestore.DocumentReference;
+import com.google.cloud.firestore.DocumentSnapshot;
+import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.QueryDocumentSnapshot;
+import com.google.cloud.firestore.QuerySnapshot;
+
+@Service
+public class MessageService {
+private static final String USERS_COLLECTION_NAME = "users";
+private static final String MESSAGE_SUBCOLLECTION_NAME = "messages";
+private final Firestore dbFirestore;
+public MessageService(DatabaseConnection databaseConnection) {
+    this.dbFirestore = databaseConnection.getFirestore();
+}
+
+/**
+ * Menyimpan pesan dalam koleksi pesan di dalam dokumen kontak pengguna.
+ *
+ * @param userId    ID pengguna
+ * @param contactId ID kontak pengguna
+ * @param message   Objek Message yang akan disimpan
+ * @return ResponseEntity dengan pesan sukses atau pesan kesalahan
+ */
+public ResponseEntity<Map<String, Object>> saveMessage(String userId, String contactId, Message message) {
+    try {
+        DocumentReference contactDocument = dbFirestore.collection(USERS_COLLECTION_NAME)
+                .document(userId)
+                .collection("chats")
+                .document(contactId);
+
+        // Buat subkoleksi MESSAGE_SUBCOLLECTION_NAME di dalam dokumen kontak
+        CollectionReference messageCollection = contactDocument.collection(MESSAGE_SUBCOLLECTION_NAME);
+
+        // Simpan pesan di dalam subkoleksi MESSAGE_SUBCOLLECTION_NAME dengan menggunakan messageId sebagai nama dokumen
+        DocumentReference messageDocument = messageCollection.document(message.getMessageId());
+        messageDocument.set(message);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("code", "200");
+        response.put("status", "OK");
+        response.put("data", message);
+
+        return ResponseEntity.ok(response);
+    } catch (Exception e) {
+        return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+    }
+}
+
+/**
+ * Mengambil detail pesan dari koleksi pesan di dalam dokumen kontak pengguna.
+ *
+ * @param userId    ID pengguna
+ * @param contactId ID kontak pengguna
+ * @return ResponseEntity dengan daftar pesan atau pesan kesalahan
+ */
+public ResponseEntity<Map<String, Object>> getMessageDetails(String userId, String contactId) {
+    try {
+        DocumentReference contactDocument = dbFirestore.collection(USERS_COLLECTION_NAME)
+                .document(userId)
+                .collection("chats")
+                .document(contactId);
+
+        // Dapatkan subkoleksi MESSAGE_SUBCOLLECTION_NAME di dalam dokumen kontak
+        CollectionReference messageCollection = contactDocument.collection(MESSAGE_SUBCOLLECTION_NAME);
+
+        // Dapatkan semua dokumen pesan dari subkoleksi MESSAGE_SUBCOLLECTION_NAME
+        ApiFuture<QuerySnapshot> future = messageCollection.get();
+        QuerySnapshot querySnapshot = future.get();
+        List<Message> messageList = new ArrayList<>();
+
+        for (QueryDocumentSnapshot document : querySnapshot.getDocuments()) {
+            Message message = document.toObject(Message.class);
+            messageList.add(message);
+        }
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("code", "200");
+        response.put("status", "OK");
+        response.put("data", messageList);
+
+        return ResponseEntity.ok(response);
+    } catch (Exception e) {
+        return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+    }
+}
+
+/**
+ * Memperbarui pesan dalam koleksi pesan di dalam dokumen kontak pengguna.
+ *
+ * @param userId    ID pengguna
+ * @param contactId ID kontak pengguna
+ * @param message   Objek Message yang akan diperbarui
+ * @return ResponseEntity dengan pesan sukses, pesan tanpa perubahan, atau pesan kesalahan
+ */
+public ResponseEntity<Map<String, Object>> updateMessage(String userId, String contactId, Message message) {
+    try {
+        DocumentReference contactDocument = dbFirestore.collection(USERS_COLLECTION_NAME)
+                .document(userId)
+                .collection("chats")
+                .document(contactId);
+
+        // Dapatkan subkoleksi MESSAGE_SUBCOLLECTION_NAME di dalam dokumen kontak
+        CollectionReference messageCollection = contactDocument.collection(MESSAGE_SUBCOLLECTION_NAME);
+
+        // ...
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("code", "200");
+        response.put("status", "OK");
+        response.put(MESSAGE_SUBCOLLECTION_NAME, "Message updated successfully");
+
+        return ResponseEntity.ok(response);
+    } catch (Exception e) {
+        return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+    }
+}
+
+/**
+ * Menghapus pesan dari koleksi pesan di dalam dokumen kontak pengguna.
+ *
+ * @param userId    ID pengguna
+ * @param contactId ID kontak pengguna
+ * @return ResponseEntity dengan pesan sukses atau pesan kesalahan
+ */
+public ResponseEntity<Map<String, Object>> deleteMessage(String userId, String contactId) {
+    try {
+        DocumentReference contactDocument = dbFirestore.collection(USERS_COLLECTION_NAME)
+                .document(userId)
+                .collection("chats")
+                .document(contactId);
+
+        // Hapus subkoleksi MESSAGE_SUBCOLLECTION_NAME di dalam dokumen kontak
+        CollectionReference messageCollection = contactDocument.collection(MESSAGE_SUBCOLLECTION_NAME);
+        ApiFuture<QuerySnapshot> future = messageCollection.get();
+        QuerySnapshot querySnapshot = future.get();
+        for (QueryDocumentSnapshot document : querySnapshot.getDocuments()) {
+            document.getReference().delete();
+        }
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("code", "200");
+        response.put("status", "OK");
+        response.put(MESSAGE_SUBCOLLECTION_NAME, "Message deleted successfully");
+
+        return ResponseEntity.ok(response);
+    } catch (Exception e) {
+        return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+    }
+}
+
+/**
+ * Mengambil semua pesan dari koleksi pesan di dalam dokumen kontak pengguna.
+ *
+ * @param userId ID pengguna
+ * @return ResponseEntity dengan daftar pesan atau pesan kesalahan
+ */
+public ResponseEntity<Map<String, Object>> getAllMessages(String userId) {
+    try {
+        CollectionReference collectionReference = dbFirestore.collection(USERS_COLLECTION_NAME)
+                .document(userId)
+                .collection("chats");
+        ApiFuture<QuerySnapshot> future = collectionReference.get();
+        QuerySnapshot querySnapshot = future.get();
+        Map<String, List<Message>> messageMap = new HashMap<>();
+
+        for (QueryDocumentSnapshot document : querySnapshot.getDocuments()) {
+            DocumentReference contactDocument = document.getReference();
+            String contactId = document.getId();
+
+            // Dapatkan subkoleksi MESSAGE_SUBCOLLECTION_NAME di dalam dokumen kontak
+            CollectionReference messageCollection = contactDocument.collection(MESSAGE_SUBCOLLECTION_NAME);
+
+            // Dapatkan semua dokumen pesan dari subkoleksi MESSAGE_SUB
+            ApiFuture<QuerySnapshot> messageFuture = messageCollection.get();
+            QuerySnapshot messageQuerySnapshot = messageFuture.get();
+            List<Message> messageList = new ArrayList<>();
+
+            for (QueryDocumentSnapshot messageDocument : messageQuerySnapshot.getDocuments()) {
+                Message message = messageDocument.toObject(Message.class);
+                messageList.add(message);
+            }
+
+            messageMap.put(contactId, messageList);
+        }
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("code", "200");
+        response.put("status", "OK");
+        response.put("data", messageMap);
+
+        return ResponseEntity.ok(response);
+    } catch (Exception e) {
+        return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+    }
+}
+
+/**
+ * Membuat ResponseEntity dengan respons kesalahan.
+ *
+ * @param status       Status HTTP yang akan digunakan dalam respons
+ * @param errorMessage Pesan kesalahan
+ * @return ResponseEntity dengan pesan kesalahan
+ */
+private ResponseEntity<Map<String, Object>> createErrorResponse(HttpStatus status, String errorMessage) {
+    Map<String, Object> response = new HashMap<>();
+    response.put("code", status.toString());
+    response.put("status", status.getReasonPhrase());
+    response.put("errors", errorMessage);
+
+    return ResponseEntity.status(status).body(response);
+}
+}
+```
+
+Berikut adalah penjelasan penerapan setiap poin dari SOLID Design Principle dalam kelas `MessageService`:
+
+1. **Single Responsibility Principle (SRP)**: Penerapan SRP terlihat pada kelas `MessageService`. Kelas ini memiliki tanggung jawab tunggal, yaitu mengelola pesan dalam sistem. Fungsi-fungsi dalam kelas ini berkaitan dengan operasi pengelolaan pesan, seperti menyimpan, mengambil, memperbarui, dan menghapus pesan. Dengan demikian, kelas ini mematuhi prinsip SRP.
+
+2. **Open-Closed Principle (OCP)**: Meskipun tidak ada implementasi langsung dari prinsip OCP dalam kelas `MessageService`, kelas ini dirancang dengan struktur yang memungkinkan perluasan fungsi-fungsi dalam waktu mendatang. Misalnya, dapat ditambahkan metode baru untuk mengelola pesan dengan logika bisnis yang berbeda. Dalam hal ini, tidak perlu memodifikasi kelas `MessageService` yang ada, tetapi cukup menambahkan metode baru sesuai dengan kebutuhan baru. Sehingga, kelas ini memiliki fleksibilitas untuk perluasan, meskipun tidak sepenuhnya mematuhi prinsip OCP.
+
+3. **Liskov Substitution Principle (LSP)**: Prinsip LSP tidak terlihat dalam kode yang diberikan. Namun, perlu dicatat bahwa tidak ada kelas turunan yang ditunjukkan dalam contoh tersebut. Oleh karena itu, tidak ada evaluasi langsung terhadap penerapan prinsip LSP pada kelas ini.
+
+4. **Interface Segregation Principle (ISP)**: Pada contoh ini, tidak ada antarmuka yang ditunjukkan secara eksplisit dalam kelas `MessageService`. Oleh karena itu, tidak ada masalah dengan prinsip ISP.
+
+5. **Dependency Inversion Principle (DIP)**: Dalam kelas `MessageService`, ketergantungan terhadap implementasi spesifik koneksi database dihindari dengan menerima objek `DatabaseConnection` melalui konstruktor. Ini mengikuti prinsip DIP, karena kelas `MessageService` bergantung pada abstraksi (`DatabaseConnection`) daripada bergantung langsung pada implementasi koneksi database tertentu. Dengan demikian, prinsip DIP diterapkan dengan baik dalam kelas ini.
+
+Meskipun tidak semua prinsip SOLID diimplementasikan secara eksplisit dalam kode tersebut, kelas `MessageService` telah memperlihatkan beberapa prinsip SOLID, seperti SRP dan DIP, dan memiliki fleksibilitas untuk perluasan. Namun, penilaian akhir terhadap penerapan prinsip SOLID harus dipertimbangkan dalam konteks yang lebih luas, termasuk struktur dan kompleksitas keseluruhan sistem yang menggunakan kelas ini.
 
 # No 4
 
 Mampu menunjukkan dan menjelaskan Design Pattern yang dipilih
 
+Jawab:
+
+- #### Singleton pattern
+  sebuah desain dalam pemrograman yang memastikan bahwa sebuah kelas hanya memiliki satu objek tunggal yang dapat diakses di seluruh aplikasi. Objek ini diciptakan hanya saat pertama kali diminta dan kemudian diakses ulang setiap kali dibutuhkan. Tujuannya adalah menghindari duplikasi objek dan memberikan akses global ke objek tersebut.
+
+Penerapan Singleton Pattern
+
+```java
+package com.fikiap.chatbrobackendapi.config;
+
+import com.google.cloud.firestore.Firestore;
+import com.google.firebase.cloud.FirestoreClient;
+import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.DependsOn;
+
+/**
+ * Kelas Singleton untuk mengelola koneksi ke database.
+ */
+@Component
+@DependsOn("firebaseInitialization")
+public class DatabaseConnection {
+    private static DatabaseConnection instance;
+    private Firestore dbFirestore;
+
+    private DatabaseConnection() {
+        // Inisialisasi koneksi ke database di sini
+        dbFirestore = FirestoreClient.getFirestore();
+    }
+
+    /**
+     * Mengembalikan instans dari DatabaseConnection.
+     *
+     * @return Instans dari DatabaseConnection
+     */
+    public static synchronized DatabaseConnection getInstance() {
+        if (instance == null) {
+            instance = new DatabaseConnection();
+        }
+        return instance;
+    }
+
+    /**
+     * Mengembalikan instans Firestore untuk mengakses database.
+     *
+     * @return Instans Firestore
+     */
+    public Firestore getFirestore() {
+        return dbFirestore;
+    }
+}
+
+```
+
 # No 5
 
 Mampu menunjukkan dan menjelaskan konektivitas ke database
 
+Jawab:
+
+- Class untuk mengelola koneksi ke database dengan singleton pattern
+
+```java
+package com.fikiap.chatbrobackendapi.config;
+
+import com.google.cloud.firestore.Firestore;
+import com.google.firebase.cloud.FirestoreClient;
+import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.DependsOn;
+
+/**
+ * Kelas Singleton untuk mengelola koneksi ke database.
+ */
+@Component
+@DependsOn("firebaseInitialization")
+public class DatabaseConnection {
+    private static DatabaseConnection instance;
+    private Firestore dbFirestore;
+
+    private DatabaseConnection() {
+        // Inisialisasi koneksi ke database di sini
+        dbFirestore = FirestoreClient.getFirestore();
+    }
+
+    /**
+     * Mengembalikan instans dari DatabaseConnection.
+     *
+     * @return Instans dari DatabaseConnection
+     */
+    public static synchronized DatabaseConnection getInstance() {
+        if (instance == null) {
+            instance = new DatabaseConnection();
+        }
+        return instance;
+    }
+
+    /**
+     * Mengembalikan instans Firestore untuk mengakses database.
+     *
+     * @return Instans Firestore
+     */
+    public Firestore getFirestore() {
+        return dbFirestore;
+    }
+}
+
+```
+
+- Class yang menggunkan database dengan objek mengambil objek koneksi database dari Class DatabaseConnection
+
+Admin untuk mengelola database admin
+
+```java
+@Service
+public class AdminService {
+    //nama tabel
+    private static final String COLLECTION_NAME = "admins";
+    private final Firestore dbFirestore;
+
+    /// Koneksi ke database firestore
+    public AdminService(DatabaseConnection databaseConnection) {
+        this.dbFirestore = databaseConnection.getFirestore();
+    }
+}
+```
+
+Class StatusService untuk mengelola database status
+
+```java
+**
+ * Kelas Service yang menangani operasi terkait status.
+ */
+@Service
+public class StatusService {
+    //nama tabel
+    private static final String COLLECTION_NAME = "status";
+    private final Firestore dbFirestore;
+
+    public StatusService(DatabaseConnection databaseConnection) {
+        this.dbFirestore = databaseConnection.getFirestore();
+    }
+
+}
+```
+
 # No 6
 
 Mampu menunjukkan dan menjelaskan pembuatan web service dan setiap operasi CRUD nya
+
+Jawab:
+
+- Saya membuat web service dengan REST dan menggunakan framework Spring boot
+
+- Dokumentasi API dengan OpenApi: [Link Dokumentasi](apidocs/openapi.yaml)
+
+- Sourcode lengkap mengenai web service bisa dilihat sini -> [Backend](https://gitlab.com/fikiaprian23/backend-ta-oop)
+
+- Contoh code CRUD web service dan penjelasannya:
+
+#### 1. Mengelola User
+
+kelas `UserService` yang digunakan untuk mengelola operasi terkait pengguna (user) dalam aplikasi. Berikut adalah penjelasan untuk setiap metode dalam kelas tersebut:
+
+1. `saveUser(User user)`: Metode ini digunakan untuk menyimpan pengguna ke database. Jika data pengguna valid, pengguna akan disimpan di koleksi "users". Metode ini mengembalikan ResponseEntity yang sesuai dengan respons API.
+
+2. `getUserDetails(String uid)`: Metode ini digunakan untuk mengambil detail pengguna berdasarkan ID pengguna (UID). Metode ini akan mencari pengguna dengan UID yang diberikan di koleksi "users" dan mengembalikan detail pengguna jika ditemukan. Jika pengguna tidak ditemukan, akan dikembalikan respons API yang sesuai.
+
+3. `updateUser(User user)`: Metode ini digunakan untuk memperbarui data pengguna di database. Jika data pengguna valid dan terdapat perubahan, data pengguna akan diperbarui di koleksi "users". Metode ini mengembalikan ResponseEntity yang sesuai dengan respons API.
+
+4. `deleteUser(String uid)`: Metode ini digunakan untuk menghapus pengguna dari database berdasarkan ID pengguna (UID). Metode ini akan mencari pengguna dengan UID yang diberikan di koleksi "users" dan menghapusnya jika ditemukan. Metode ini mengembalikan ResponseEntity yang sesuai dengan respons API.
+
+5. `getAllUsers()`: Metode ini digunakan untuk mengambil semua pengguna dari database. Metode ini akan mengambil semua dokumen pengguna dari koleksi "users" dan mengembalikan daftar pengguna dalam respons API.
+
+Setiap metode menggunakan objek `dbFirestore` untuk berinteraksi dengan Firestore, dan respons API yang dihasilkan berisi informasi kode, status, dan pesan yang sesuai dengan operasi yang dilakukan.
+
+Kelas `UserService` ini menggunakan dependensi `DatabaseConnection` untuk mendapatkan objek Firestore yang diperlukan untuk berinteraksi dengan database.
+
+```java
+package com.fikiap.chatbrobackendapi.service;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
+import com.fikiap.chatbrobackendapi.config.DatabaseConnection;
+import com.fikiap.chatbrobackendapi.entity.User;
+import com.google.api.core.ApiFuture;
+import com.google.cloud.firestore.CollectionReference;
+import com.google.cloud.firestore.DocumentReference;
+import com.google.cloud.firestore.DocumentSnapshot;
+import com.google.cloud.firestore.FieldValue;
+import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.QueryDocumentSnapshot;
+import com.google.cloud.firestore.QuerySnapshot;
+
+/**
+ * Kelas Service untuk mengelola operasi terkait pengguna.
+ */
+@Service
+public class UserService {
+
+    private static final String COLLECTION_NAME = "users";
+    private final Firestore dbFirestore;
+
+    public UserService(DatabaseConnection databaseConnection) {
+        this.dbFirestore = databaseConnection.getFirestore();
+    }
+
+    /**
+     * Menyimpan pengguna ke database.
+     *
+     * @param user Pengguna yang akan disimpan
+     * @return ResponseEntity dengan respons API yang sesuai
+     */
+    public ResponseEntity<Map<String, Object>> saveUser(User user) {
+        if (user == null || StringUtils.isEmpty(user.getUid())) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("code", "400");
+            errorResponse.put("status", "Bad Request");
+            errorResponse.put("message", "Data pengguna tidak valid");
+
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+
+        try {
+            dbFirestore.collection(COLLECTION_NAME)
+                    .document(user.getUid())
+                    .set(user);
+
+            Map<String, Object> successResponse = new HashMap<>();
+            successResponse.put("code", "200");
+            successResponse.put("status", "OK");
+            successResponse.put("message", "Pengguna berhasil disimpan");
+
+            return ResponseEntity.ok(successResponse);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("code", "500");
+            errorResponse.put("status", "Internal Server Error");
+            errorResponse.put("message", "Gagal menyimpan pengguna: " + e.getMessage());
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
+    /**
+     * Mengambil detail pengguna berdasarkan ID pengguna.
+     *
+     * @param uid ID pengguna
+     * @return ResponseEntity dengan respons API yang sesuai
+     */
+    public ResponseEntity<Map<String, Object>> getUserDetails(String uid) {
+        if (StringUtils.isEmpty(uid)) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("code", "400");
+            errorResponse.put("status", "Bad Request");
+            errorResponse.put("message", "ID pengguna tidak valid");
+
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+
+        try {
+            DocumentReference documentReference = dbFirestore.collection(COLLECTION_NAME).document(uid);
+            ApiFuture<DocumentSnapshot> future = documentReference.get();
+            DocumentSnapshot documentSnapshot = future.get();
+
+            if (documentSnapshot.exists()) {
+                User user = documentSnapshot.toObject(User.class);
+
+                Map<String, Object> successResponse = new HashMap<>();
+                successResponse.put("code", "200");
+                successResponse.put("status", "OK");
+                successResponse.put("data", user);
+
+                return ResponseEntity.ok(successResponse);
+            } else {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("code", "404");
+                errorResponse.put("status", "Not Found");
+                errorResponse.put("message", "Pengguna tidak ditemukan");
+
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+            }
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("code", "500");
+            errorResponse.put("status", "Internal Server Error");
+            errorResponse.put("message", "Gagal mengambil detail pengguna: " + e.getMessage());
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
+    /**
+     * Memperbarui pengguna di database.
+     *
+     * @param user Data pengguna yang diperbarui
+     * @return ResponseEntity dengan respons API yang sesuai
+     */
+    public ResponseEntity<Map<String, Object>> updateUser(User user) {
+        if (user == null || StringUtils.isEmpty(user.getUid())) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("code", "400");
+            errorResponse.put("status", "Bad Request");
+            errorResponse.put("message", "Data pengguna tidak valid");
+
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+
+        try {
+            Map<String, Object> updateData = user.toMap();
+            updateData.remove("uid"); // Hapus field UID dari data pembaruan
+
+            // Filter data yang tidak berubah
+            Map<String, Object> filteredData = new HashMap<>();
+            for (Map.Entry<String, Object> entry : updateData.entrySet()) {
+                String key = entry.getKey();
+                Object value = entry.getValue();
+
+                // Pastikan nilai tidak null
+                if (value != null) {
+                    filteredData.put(key, value);
+                }
+            }
+
+            // Lakukan pembaruan hanya jika ada perubahan
+            if (!filteredData.isEmpty()) {
+                filteredData.put("lastUpdated", FieldValue.serverTimestamp()); // Opsional: Sertakan field timestamp
+
+                dbFirestore.collection(COLLECTION_NAME)
+                        .document(user.getUid())
+                        .update(filteredData);
+
+                Map<String, Object> successResponse = new HashMap<>();
+                successResponse.put("code", "200");
+                successResponse.put("status", "OK");
+                successResponse.put("message", "Pengguna berhasil diperbarui");
+
+                return ResponseEntity.ok(successResponse);
+            }
+
+            Map<String, Object> successResponse = new HashMap<>();
+            successResponse.put("code", "200");
+            successResponse.put("status", "OK");
+            successResponse.put("message", "Tidak ada perubahan untuk diperbarui");
+
+            return ResponseEntity.ok(successResponse);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("code", "500");
+            errorResponse.put("status", "Internal Server Error");
+            errorResponse.put("message", "Gagal memperbarui pengguna: " + e.getMessage());
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
+    /**
+     * Menghapus pengguna dari database berdasarkan ID pengguna.
+     *
+     * @param uid ID pengguna
+     * @return ResponseEntity dengan respons API yang sesuai
+     */
+    public ResponseEntity<Map<String, Object>> deleteUser(String uid) {
+        if (StringUtils.isEmpty(uid)) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("code", "400");
+            errorResponse.put("status", "Bad Request");
+            errorResponse.put("message", "ID pengguna tidak valid");
+
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+
+        try {
+            dbFirestore.collection(COLLECTION_NAME)
+                    .document(uid)
+                    .delete();
+
+            Map<String, Object> successResponse = new HashMap<>();
+            successResponse.put("code", "200");
+            successResponse.put("status", "OK");
+            successResponse.put("message", "Pengguna berhasil dihapus");
+
+            return ResponseEntity.ok(successResponse);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("code", "500");
+            errorResponse.put("status", "Internal Server Error");
+            errorResponse.put("message", "Gagal menghapus pengguna: " + e.getMessage());
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
+    /**
+     * Mengambil semua pengguna dari database.
+     *
+     * @return ResponseEntity dengan respons API yang sesuai
+     */
+    public ResponseEntity<Map<String, Object>> getAllUsers() {
+        try {
+            CollectionReference collectionReference = dbFirestore.collection(COLLECTION_NAME);
+            ApiFuture<QuerySnapshot> future = collectionReference.get();
+            QuerySnapshot querySnapshot = future.get();
+            List<User> userList = new ArrayList<>();
+
+            for (QueryDocumentSnapshot document : querySnapshot.getDocuments()) {
+                User user = document.toObject(User.class);
+                userList.add(user);
+            }
+
+            Map<String, Object> successResponse = new HashMap<>();
+            successResponse.put("code", "200");
+            successResponse.put("status", "OK");
+            successResponse.put("data", userList);
+
+            return ResponseEntity.ok(successResponse);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("code", "500");
+            errorResponse.put("status", "Internal Server Error");
+            errorResponse.put("message", "Gagal mengambil pengguna: " + e.getMessage());
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+}
+
+```
+
+Kelas `UserController` yang merupakan controller dalam aplikasi. Kelas ini menangani permintaan terkait pengguna (user) dengan menggunakan objek `UserService` untuk menjalankan operasi terkait pengguna. Berikut adalah penjelasan untuk setiap metode dalam kelas tersebut:
+
+1. `saveUser(User user)`: Metode ini merupakan API untuk menyimpan pengguna baru. Permintaan POST dengan data pengguna dikirim ke URL `/api/users`. Metode ini akan memvalidasi data pengguna, kemudian memanggil `userService.saveUser(user)` untuk menyimpan pengguna ke database. Metode ini mengembalikan ResponseEntity dengan pesan sukses atau pesan kesalahan.
+
+2. `getUser(String uid)`: Metode ini merupakan API untuk mendapatkan detail pengguna berdasarkan ID pengguna (UID). Permintaan GET dengan UID pengguna ditentukan di URL `/api/users/{uid}`. Metode ini akan memanggil `userService.getUserDetails(uid)` untuk mengambil detail pengguna dari database. Metode ini mengembalikan ResponseEntity dengan detail pengguna atau respons not found.
+
+3. `updateUser(String uid, User user)`: Metode ini merupakan API untuk memperbarui pengguna. Permintaan PUT dengan UID pengguna ditentukan di URL `/api/users/{uid}` dan data pengguna yang diperbarui dikirim dalam body permintaan. Metode ini akan memvalidasi data pengguna, kemudian memanggil `userService.updateUser(user)` untuk memperbarui pengguna di database. Metode ini mengembalikan ResponseEntity dengan pesan sukses, pesan tanpa perubahan, atau pesan kesalahan.
+
+4. `deleteUser(String uid)`: Metode ini merupakan API untuk menghapus pengguna berdasarkan ID pengguna (UID). Permintaan DELETE dengan UID pengguna ditentukan di URL `/api/users/{uid}`. Metode ini akan memanggil `userService.deleteUser(uid)` untuk menghapus pengguna dari database. Metode ini mengembalikan ResponseEntity dengan pesan sukses atau pesan kesalahan.
+
+5. `getAllUsers()`: Metode ini merupakan API untuk mendapatkan daftar semua pengguna. Permintaan GET dikirim ke URL `/api/users`. Metode ini akan memanggil `userService.getAllUsers()` untuk mengambil semua pengguna dari database. Metode ini mengembalikan ResponseEntity dengan daftar pengguna atau pesan kesalahan.
+
+Setiap metode mengembalikan ResponseEntity yang sesuai dengan respons API, baik itu respons sukses dengan data yang diminta atau respons kesalahan dengan pesan yang sesuai.
+
+```java
+package com.fikiap.chatbrobackendapi.controller;
+
+import com.fikiap.chatbrobackendapi.entity.User;
+import com.fikiap.chatbrobackendapi.service.UserService;
+
+import jakarta.validation.Valid;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+
+
+/**
+ * Kelas Controller yang menangani permintaan terkait pengguna.
+ */
+@RestController
+@RequestMapping("/api/users")
+public class UserController {
+
+	private final UserService userService;
+
+	/**
+	 * Konstruktor UserController.
+	 *
+	 * @param userService Layanan UserService yang digunakan.
+	 */
+	@Autowired
+	public UserController(UserService userService) {
+		this.userService = userService;
+	}
+
+	/**
+	 * API untuk menyimpan pengguna baru.
+	 *
+	 * @param user Data pengguna yang akan disimpan
+	 * @return ResponseEntity dengan pesan sukses atau pesan kesalahan
+	 */
+	@PostMapping
+	public ResponseEntity<?> saveUser(@Valid @RequestBody User user) {
+		try {
+			return userService.saveUser(user);
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body("Gagal menyimpan pengguna: " + e.getMessage());
+		}
+	}
+
+	/**
+	 * API untuk mendapatkan detail pengguna berdasarkan ID pengguna.
+	 *
+	 * @param uid ID pengguna
+	 * @return ResponseEntity dengan detail pengguna atau respons not found
+	 */
+	@GetMapping("/{uid}")
+	public ResponseEntity<?> getUser(@PathVariable String uid) {
+		try {
+			return userService.getUserDetails(uid);
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body("Gagal mengambil detail pengguna: " + e.getMessage());
+		}
+	}
+
+	/**
+	 * API untuk memperbarui pengguna.
+	 *
+	 * @param uid  ID pengguna yang akan diperbarui
+	 * @param user Data pengguna yang diperbarui
+	 * @return ResponseEntity dengan pesan sukses, pesan tanpa perubahan, atau pesan
+	 *         kesalahan
+	 */
+	@PutMapping("/{uid}")
+	public ResponseEntity<?> updateUser(@PathVariable String uid, @Valid @RequestBody User user) {
+		try {
+			user.setUid(uid);
+			return userService.updateUser(user);
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body("Gagal memperbarui pengguna: " + e.getMessage());
+		}
+	}
+
+	/**
+	 * API untuk menghapus pengguna berdasarkan ID pengguna.
+	 *
+	 * @param uid ID pengguna
+	 * @return ResponseEntity dengan pesan sukses atau pesan kesalahan
+	 */
+	@DeleteMapping("/{uid}")
+	public ResponseEntity<?> deleteUser(@PathVariable String uid) {
+		try {
+			return userService.deleteUser(uid);
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body("Gagal menghapus pengguna: " + e.getMessage());
+		}
+	}
+
+	/**
+	 * API untuk mendapatkan daftar semua pengguna.
+	 *
+	 * @return ResponseEntity dengan daftar pengguna atau pesan kesalahan
+	 */
+	@GetMapping
+	public ResponseEntity<?> getAllUsers() {
+		try {
+			return userService.getAllUsers();
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body("Gagal mengambil pengguna: " + e.getMessage());
+		}
+	}
+}
+```
+
+Contoh penggunaan di Postman
+
+- Response Sukses (200)
+  <img src="Screenshot_Aplikasi/200.png" alt="alt text" width="400">
+
+- Response gagal
+  <img src="Screenshot_Aplikasi/404.png" alt="alt text" width="400">
 
 # No 7
 
 Mampu menunjukkan dan menjelaskan Graphical User Interface dari
 produk digital
 
+Jawab:
+Sourcode GUI dengan flutter: [Frontend-Mobile](https://gitlab.com/fikiaprian23/fronted-chatbro)
+
+- **Landing page**
+
+<img src="Screenshot_Aplikasi/landing_page.png" alt="alt text" width="300">
+
+- **Register**
+
+<img src="Screenshot_Aplikasi/Register.png" alt="alt text" width="300">
+
+- **OTP**
+
+<img src="Screenshot_Aplikasi/Otp.png" alt="alt text" width="300">
+
+- **Grup**
+
+<img src="Screenshot_Aplikasi/grup.png" alt="alt text" width="300">
+
+- **User Chat**
+
+<img src="Screenshot_Aplikasi/user_chatlist.png" alt="alt text" width="300">
+
+- **History call**
+
+<img src="Screenshot_Aplikasi/history.png" alt="alt text" width="300">
+
+- **Status**
+
+<img src="Screenshot_Aplikasi/status.png" alt="alt text" width="300">
+
+- **Select Contact**
+
+<img src="Screenshot_Aplikasi/select_contact.png" alt="alt text" width="300">
+
+- **Chat Grup**
+
+<img src="Screenshot_Aplikasi/chat_grup.png" alt="alt text" width="300">
+
+- **Chat Personal**
+
+<img src="Screenshot_Aplikasi/chat_personal.png" alt="alt text" width="300">
+
+- **Profile teman**
+
+<img src="Screenshot_Aplikasi/profile_friend.png" alt="alt text" width="300">
+
 # No 8
 
 Mampu menunjukkan dan menjelaskan HTTP connection melalui GUI produk digital
+
+Jawab:
 
 # No 9
 
 Mampu Mendemonstrsikan produk digitalnya kepada publik dengan cara-cara kreatif melalui video Youtube
 
+Jawab:
+
 # No 10
 
 BONUS !!! Mendemonstrasikan penggunaan Machine Learning
+
+```
+
+```
