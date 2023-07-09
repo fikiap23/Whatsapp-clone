@@ -922,10 +922,12 @@ public class UserController {
 Contoh penggunaan di Postman
 
 - Response Sukses (200)
-  <img src="Screenshot_Aplikasi/200.png" alt="alt text" width="400">
+
+<img src="Screenshot_Aplikasi/200.png" alt="alt text" width="400">
 
 - Response gagal
-  <img src="Screenshot_Aplikasi/404.png" alt="alt text" width="400">
+
+<img src="Screenshot_Aplikasi/404.png" alt="alt text" width="400">
 
 # No 7
 
