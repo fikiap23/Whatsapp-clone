@@ -935,7 +935,8 @@ Mampu menunjukkan dan menjelaskan Graphical User Interface dari
 produk digital
 
 Jawab:
-Sourcode GUI dengan flutter: [Frontend-Mobile](https://gitlab.com/fikiaprian23/fronted-chatbro)
+Sourcode GUI dengan flutter:
+[Frontend-Mobile](https://gitlab.com/fikiaprian23/fronted-chatbro)
 
 - **Landing page**
 
@@ -987,11 +988,211 @@ Mampu menunjukkan dan menjelaskan HTTP connection melalui GUI produk digital
 
 Jawab:
 
+- GET
+
+```dart
+  Future<List<AdminModel>> getAllAdmins() async {
+    var url = 'http://localhost:8080/api/admins'; // Ganti dengan URL API Anda
+
+    try {
+      var response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        var responseData = json.decode(response.body);
+        List<AdminModel> admins = [];
+
+        if (responseData['status'] == 'OK') {
+          var adminDataList = responseData['data'];
+
+          for (var adminData in adminDataList) {
+            AdminModel admin = AdminModel.fromMap(adminData);
+
+            admins.add(admin);
+          }
+        }
+
+        return admins;
+      }
+    } catch (e) {
+      print('Error occurred while fetching admins data: $e');
+    }
+
+    return [];
+  }
+```
+
+```dart
+  Future<AdminModel?> getCurrentAdminData() async {
+    try {
+      var uid = auth.currentUser?.uid;
+      var apiUrl = 'http://localhost:8080/api/admins/$uid';
+
+      var response = await http.get(Uri.parse(apiUrl));
+
+      if (response.statusCode == 200) {
+        var responseData = jsonDecode(response.body);
+        if (responseData != null) {
+          return AdminModel.fromMap(responseData['data']);
+        }
+      }
+    } catch (e) {
+      print('Error occurred while fetching user data: $e');
+    }
+
+    return null;
+  }
+```
+
+```dart
+  Future<List<UserModel>> getAllUsers() async {
+    var url = 'http://localhost:8080/api/users'; // Ganti dengan URL API Anda
+
+    try {
+      var response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        var responseData = json.decode(response.body);
+        List<UserModel> users = [];
+
+        if (responseData['status'] == 'OK') {
+          var userDataList = responseData['data'];
+
+          for (var userData in userDataList) {
+            UserModel user = UserModel.fromMap(userData);
+
+            users.add(user);
+          }
+        }
+
+        return users;
+      }
+    } catch (e) {
+      print('Error occurred while fetching admins data: $e');
+    }
+
+    return [];
+  }
+```
+
+- POST
+
+```dart
+  Future<ApiResponse> saveAdminToAPI(Map<String, dynamic> adminData) async {
+    var url = 'http://localhost:8080/api/admins';
+
+    try {
+      var response = await http.post(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(adminData),
+      );
+
+      return ApiResponse(
+        statusCode: response.statusCode,
+        data: response.body,
+      );
+    } catch (e) {
+      return ApiResponse(
+        statusCode: -1, // Contoh kode status khusus untuk kesalahan jaringan
+        data: 'Terjadi kesalahan jaringan: ${e.toString()}',
+      );
+    }
+  }
+```
+
+```dart
+ Future<void> postStatusToFirestore(
+      Status status, BuildContext context) async {
+    try {
+      var url = Uri.parse('http://localhost:8080/api/statuss');
+      var headers = {'Content-Type': 'application/json'};
+      var body = jsonEncode(status.toMap());
+
+      var response = await http.post(url, headers: headers, body: body);
+
+      if (response.statusCode == 200) {
+        // ignore: use_build_context_synchronously
+        showAlertDialog(
+            context: context,
+            message: 'Status posted to Firestore API successfully');
+      } else {
+        // ignore: use_build_context_synchronously
+        showAlertDialog(
+            context: context,
+            message: 'Failed to post status to Firestore API');
+      }
+    } catch (e) {
+      showAlertDialog(
+          context: context,
+          message: 'Error occurred while posting status to Firestore API: $e');
+    }
+  }
+```
+
+- PUT
+
+```dart
+Future<void> putAdminData(String uid, Map<String, dynamic> updatedData) async {
+  try {
+    var url = Uri.parse('http://localhost:8080/api/admins/$uid');
+    var headers = {'Content-Type': 'application/json'};
+    var body = jsonEncode(updatedData);
+
+    var response = await http.put(url, headers: headers, body: body);
+
+    if (response.statusCode == 200) {
+      print('Admin data updated successfully');
+    } else {
+      print('Failed to update admin data');
+    }
+  } catch (e) {
+    print('Error occurred while updating admin data: $e');
+  }
+}
+
+```
+
+- DELETE
+
+```dart
+Future<void> deleteAdminData(String uid) async {
+  try {
+    var url = Uri.parse('http://localhost:8080/api/admins/$uid');
+
+    var response = await http.delete(url);
+
+    if (response.statusCode == 200) {
+      print('Admin data deleted successfully');
+    } else {
+      print('Failed to delete admin data');
+    }
+  } catch (e) {
+    print('Error occurred while deleting admin data: $e');
+  }
+}
+
+```
+
 # No 9
 
 Mampu Mendemonstrsikan produk digitalnya kepada publik dengan cara-cara kreatif melalui video Youtube
 
 Jawab:
+
+**Video Demo Project UTS**
+
+![](Screenshot_Aplikasi/DemoWA.mp4)
+
+**[Link Youtube](https://youtu.be/XR-BveZi0fU)**
+
+**Video Demo Project UAS**
+
+![](Screenshot_Aplikasi/DemoWA.mp4)
+
+**[Link Youtube](https://youtu.be/XR-BveZi0fU)**
+
 
 # No 10
 
