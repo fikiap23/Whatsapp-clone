@@ -982,6 +982,46 @@ Sourcode GUI dengan flutter:
 
 <img src="Screenshot_Aplikasi/profile_friend.png" alt="alt text" width="300">
 
+- **Buat Status Teks**
+
+<img src="Screenshot_Aplikasi/status_teks.png" alt="alt text" width="300">
+
+- **Buat Status Foto**
+
+<img src="Screenshot_Aplikasi/status_foto.png" alt="alt text" width="300">
+
+- **Lihat Status Teks**
+
+<img src="Screenshot_Aplikasi/user_update_img.png" alt="alt text" width="300">
+
+- **Lihat Status Foto**
+
+<img src="Screenshot_Aplikasi/user_update_foto.png" alt="alt text" width="300">
+
+- **Lihat Status Admin/Perusaann**
+
+<img src="Screenshot_Aplikasi/wa_update.png" alt="alt text" width="300">
+
+- **Login Admin/Perusaann**
+
+<img src="Screenshot_Aplikasi/login_admin.png" alt="alt text" width="300">
+
+- **Dasbor Admin/Perusaann**
+
+<img src="Screenshot_Aplikasi/dasbor.png" alt="alt text" width="300">
+
+- **Profile Admin/Perusaann**
+
+<img src="Screenshot_Aplikasi/admin_profile.png" alt="alt text" width="300">
+
+- **Menu Pengumuman Admin/Perusaann**
+
+<img src="Screenshot_Aplikasi/admin_pengumuman.png" alt="alt text" width="300">
+
+- **Buat Status Pengumuman Admin/Perusaann**
+
+<img src="Screenshot_Aplikasi/admin_status.png" alt="alt text" width="300">
+
 # No 8
 
 Mampu menunjukkan dan menjelaskan HTTP connection melalui GUI produk digital
@@ -992,7 +1032,7 @@ Jawab:
 
 ```dart
   Future<List<AdminModel>> getAllAdmins() async {
-    var url = 'http://localhost:8080/api/admins'; // Ganti dengan URL API Anda
+    var url = 'http://localhost:8080/api/admins';
 
     try {
       var response = await http.get(Uri.parse(url));
@@ -1045,7 +1085,7 @@ Jawab:
 
 ```dart
   Future<List<UserModel>> getAllUsers() async {
-    var url = 'http://localhost:8080/api/users'; // Ganti dengan URL API Anda
+    var url = 'http://localhost:8080/api/users';
 
     try {
       var response = await http.get(Uri.parse(url));
@@ -1095,7 +1135,7 @@ Jawab:
       );
     } catch (e) {
       return ApiResponse(
-        statusCode: -1, // Contoh kode status khusus untuk kesalahan jaringan
+        statusCode: -1,
         data: 'Terjadi kesalahan jaringan: ${e.toString()}',
       );
     }
@@ -1189,10 +1229,9 @@ Jawab:
 
 **Video Demo Project UAS**
 
-![](Screenshot_Aplikasi/DemoWA.mp4)
+![](Screenshot_Aplikasi/demo2wa.mp4)
 
-**[Link Youtube](https://youtu.be/XR-BveZi0fU)**
-
+**[Link Youtube](https://youtu.be/zyZPAiUAoZg)**
 
 # No 10
 
