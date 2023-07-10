@@ -988,7 +988,7 @@ Mampu menunjukkan dan menjelaskan HTTP connection melalui GUI produk digital
 
 Jawab:
 
-- GET
+- **GET**
 
 ```dart
   Future<List<AdminModel>> getAllAdmins() async {
@@ -1074,7 +1074,7 @@ Jawab:
   }
 ```
 
-- POST
+- **POST**
 
 ```dart
   Future<ApiResponse> saveAdminToAPI(Map<String, dynamic> adminData) async {
@@ -1131,7 +1131,7 @@ Jawab:
   }
 ```
 
-- PUT
+- **PUT**
 
 ```dart
 Future<void> putAdminData(String uid, Map<String, dynamic> updatedData) async {
@@ -1154,7 +1154,7 @@ Future<void> putAdminData(String uid, Map<String, dynamic> updatedData) async {
 
 ```
 
-- DELETE
+- **DELETE**
 
 ```dart
 Future<void> deleteAdminData(String uid) async {
