@@ -407,6 +407,85 @@ public class DatabaseConnection {
 
 ```
 
+- #### Builder pattern (Bawaan dari library)
+
+```java
+		FirebaseOptions options = new FirebaseOptions.Builder()
+			.setCredentials(GoogleCredentials.fromStream(serviceAccount))
+			.build();
+```
+
+- #### Repository pattern
+
+Repository pattern adalah suatu pendekatan untuk memisahkan business logic kita dengan persistence/query logic. Yang dimaksud dengan persistence logic adalah baris-baris code yang khusus berinteraksi dengan Database, atau gampangnya disebut operasi CRUD
+(gak termasuk controller).
+
+Repository pattern memiliki peran andil dalam memisahkan persistence logic kita dari controller
+
+- Disini kita bisa melihat kinerja **Controller** yang “hanya” menerima input dan mengembalikan output dari user saja, dan memang seharusnya begitu.
+
+```dart
+class AuthController {
+  final AuthRepository authRepository;
+  final ProviderRef ref;
+  AuthController({
+    required this.authRepository,
+    required this.ref,
+  });
+
+  Future<AdminModel?> getAdminData() async {
+    AdminModel? Admin = await authRepository.getCurrentUserData();
+    return Admin;
+  }
+```
+
+- Tugas CRUD database? Sudah di-handle oleh class AuthRepository.
+
+```dart
+class AuthRepository {
+  final FirebaseAuth auth;
+  final FirebaseFirestore firestore;
+  AuthRepository({
+    required this.auth,
+    required this.firestore,
+  });
+
+  Future<AdminModel?> getCurrentUserData() async {
+    var adminData =
+        await firestore.collection('admins').doc(auth.currentUser?.uid).get();
+
+    AdminModel? admin;
+    if (adminData.data() != null) {
+      admin = AdminModel.fromMap(adminData.data()!);
+    }
+    return admin;
+  }
+
+  Future<ApiResponse> saveAdminToAPI(Map<String, dynamic> adminData) async {
+    var url = 'http://localhost:8080/api/admins';
+
+    try {
+      var response = await http.post(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(adminData),
+      );
+
+      return ApiResponse(
+        statusCode: response.statusCode,
+        data: response.body,
+      );
+    } catch (e) {
+      return ApiResponse(
+        statusCode: -1, // Contoh kode status khusus untuk kesalahan jaringan
+        data: 'Terjadi kesalahan jaringan: ${e.toString()}',
+      );
+    }
+  }
+```
+
 **Sedangkan untuk Architecture Pattern yang saya gunakan**
 
 - #### Backend -> Spring Boot Flow Architecture
