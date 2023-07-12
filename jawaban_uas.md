@@ -354,6 +354,8 @@ Mampu menunjukkan dan menjelaskan Design Pattern yang dipilih
 
 Jawab:
 
+### Design Pattern
+
 - #### Singleton pattern
   sebuah desain dalam pemrograman yang memastikan bahwa sebuah kelas hanya memiliki satu objek tunggal yang dapat diakses di seluruh aplikasi. Objek ini diciptakan hanya saat pertama kali diminta dan kemudian diakses ulang setiap kali dibutuhkan. Tujuannya adalah menghindari duplikasi objek dan memberikan akses global ke objek tersebut.
 
@@ -404,6 +406,30 @@ public class DatabaseConnection {
 }
 
 ```
+
+**Sedangkan untuk Architecture Pattern yang saya gunakan**
+
+- #### Backend -> Spring Boot Flow Architecture
+
+<img src="Screenshot_Aplikasi/fig48.jpg" alt="alt text" width="600">
+
+- [Link Sourcode Backend](https://gitlab.com/fikiaprian23/backend-ta-oop)
+
+- Folder config: Digunakan untuk menyimpan konfigurasi aplikasi, seperti konfigurasi Spring, pengaturan basis data, atau konfigurasi keamanan.
+
+- Folder controller: Menyimpan kelas-kelas kontroler (controller) yang bertanggung jawab untuk menangani permintaan dari klien dan menghubungkannya dengan logika bisnis yang sesuai.
+
+- Folder entity(model): Digunakan untuk menyimpan entitas (entity) yang merepresentasikan struktur data dalam aplikasi. Entitas ini biasanya berhubungan dengan basis data dan digunakan untuk operasi CRUD (Create, Read, Update, Delete).
+
+- Folder service: Menyimpan kelas-kelas layanan (service) yang berisi logika bisnis aplikasi. Layanan ini bertanggung jawab untuk memproses dan mengolah data, menerapkan aturan bisnis, dan berinteraksi dengan lapisan persistensi.
+
+- Folder firebase: Digunakan untuk menyimpan file konfigurasi atau kode yang terkait dengan integrasi aplikasi Spring Boot dengan layanan Firebase, seperti penyimpanan data atau otentikasi pengguna.
+
+- #### Frontend Mobile -> Pendekatan Domain-Driven Design (DDD) Architecture
+
+DDD (Domain-driven Design) adalah sebuah pola arsitektur perangkat lunak yang menekankan pemodelan yang kuat dan terfokus pada bisnis (domain) yang menjadi inti dari aplikasi. Dalam pola ini, struktur folder dan organisasi kode didasarkan pada konsep domain atau fitur aplikasi yang ada.
+
+<img src="Screenshot_Aplikasi/1.png" alt="alt text" width="300">
 
 # No 5
 
