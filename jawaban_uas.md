@@ -411,7 +411,7 @@ public class DatabaseConnection {
 
 - #### Backend -> Spring Boot Flow Architecture
 
-<img src="Screenshot_Aplikasi/fig48.jpg" alt="alt text" width="600">
+<img src="Screenshot_Aplikasi/Fig48.jpg" alt="alt text" width="600">
 
 - [Link Sourcode Backend](https://gitlab.com/fikiaprian23/backend-ta-oop)
 
